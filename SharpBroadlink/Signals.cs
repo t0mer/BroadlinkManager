@@ -218,5 +218,27 @@ namespace SharpBroadlink
             var result = Signals.Lirc2Pronto(raw, frequency);
             return result;
         }
+
+        public static string ByteToHex(byte[] bytes)
+        {
+            char[] c = new char[bytes.Length * 2];
+            int b;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                b = bytes[i] >> 4;
+                c[i * 2] = (char)(55 + b + (((b - 10) >> 31) & -7));
+                b = bytes[i] & 0xF;
+                c[i * 2 + 1] = (char)(55 + b + (((b - 10) >> 31) & -7));
+            }
+            return new string(c);
+        }
+
+
+        public static string ToBase64(this byte[] data) => Convert.ToBase64String(data, 0, data.Length);
+        public static byte[] FromBase64Bytes(this string data) => Convert.FromBase64String(data);
+        public static string ToBase64( string data) => data.GetBytesUTF8().ToBase64();
+        public static string FromBase64String( string data) => data.FromBase64Bytes().GetStringUTF8();
+        public static byte[] GetBytesUTF8(this string data) => Encoding.UTF8.GetBytes(data);
+        public static string GetStringUTF8(this byte[] data) => Encoding.UTF8.GetString(data);
     }
 }

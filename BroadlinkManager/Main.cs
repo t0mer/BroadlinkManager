@@ -13,6 +13,7 @@ namespace BroadlinkManager
 {
     public partial class Main : MetroForm
     {
+
         IDevice[] devs;
         public Main()
         {
@@ -108,10 +109,9 @@ namespace BroadlinkManager
         {
             try
             {
-                Output.AppendLine(Color.White,"Searching for  devices...");
-                DevicesList.DataSource = null;
-                DevicesList.Items.Clear();
-                await RmRfSignalTest();
+                Output.AppendLine(Color.White, "Searching for  devices...");
+                Devices.Items.Clear();
+                await ScanForDevices();
             }
             catch (Exception ex)
             {
@@ -119,28 +119,47 @@ namespace BroadlinkManager
             }
         }
 
+        //private async void LearnIr_Click(object sender, System.EventArgs e)
+        //{
+        //    var dev = (IDevice)devs[Devices.SelectedIndex];       //
+        //    if (dev.DeviceType == DeviceType.Rm)
+        //    {
+        //        var device = (Rm)dev;
+        //        await device.EnterLearning();
+        //        var signal = await device.CheckData();
+        //    }
 
-        private async Task<bool> RmRfSignalTest()
+        //    if (dev.DeviceType == DeviceType.Rm2Pro)
+        //    {
+        //        var device = (Rm2Pro)dev;
+        //        await device.EnterLearning();
+        //        var signal = await device.CheckData();
+        //    }
+
+        //}
+
+
+        private async Task<bool> ScanForDevices()
         {
-            
+
             this.devs = await Broadlink.Discover(1);
             if (devs.Length > 0)
             {
                 Output.AppendLine(Color.White, devs.Length + " Devices Have been found...");
-                DevicesList.ValueMember = null;
-                DevicesList.DisplayMember = "DeviceType";
-                DevicesList.DataSource = devs;
+
                 foreach (var dev in devs)
                 {
-                    Output.AppendLine(Color.White,"     " + dev.DeviceType.ToString() + " (" + dev.Host + ")");
+                    Devices.Items.Add(dev.DeviceType.ToString());
+                    Output.AppendLine(Color.White, "     " + dev.DeviceType.ToString() + " (" + dev.Host + ")");
                 }
+
 
             }
             else
             {
                 Output.AppendLine(Color.Yellow, "Device not found!");
             }
-        
+
 
             //var rm = (Rm)devs.FirstOrDefault(d => d.DeviceType == DeviceType.Rm);
 
@@ -186,11 +205,62 @@ namespace BroadlinkManager
             return true;
         }
 
-        private void DevicesList_SelectedIndexChanged(object sender, EventArgs e)
+
+        private async void Scan_Click(object sender, EventArgs e)
         {
-            var dev = DevicesList.SelectedValue;
-            Output.AppendLine(Color.Red,((IDevice)dev).Host.ToString());
-            
+            try
+            {
+                Output.AppendLine(Color.White, "Searching for  devices...");
+                Devices.Items.Clear();
+                await ScanForDevices();
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+
+
+        private void Devices_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var dev = (IDevice)devs[Devices.SelectedIndex];
+            Output.AppendLine(Color.Red, ((IDevice)dev).Host.ToString());
+        }
+
+
+
+        private  void LearnIR_Click(object sender, EventArgs e)
+        {
+            LearnIr().GetAwaiter();
+        }
+
+
+
+        private async Task<bool> LearnIr()
+        {
+            var dev = (IDevice)devs[Devices.SelectedIndex];
+            if (dev.DeviceType == DeviceType.Rm)
+            {
+                var device = (Rm)dev;
+                await device.Auth();
+                device.EnterLearning().Wait(2000);
+                var signal = await device.CheckData();
+                string Hex = Signals.ProntoBytes2String(signal);
+                Output.AppendLine(Color.White, Hex);
+
+            }
+
+            if (dev.DeviceType == DeviceType.Rm2Pro)
+            {
+                var device = (Rm2Pro)dev;
+                await device.Auth();
+                device.EnterLearning().Wait(2000);
+                var signal = await device.CheckData();
+                string Hex = Signals.ProntoBytes2String(signal);
+                Output.AppendLine(Color.White, Hex);
+            }
+            return true;
         }
     }
 }

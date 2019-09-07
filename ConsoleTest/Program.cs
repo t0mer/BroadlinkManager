@@ -28,9 +28,9 @@ namespace ConsoleTest
                 //    .GetAwaiter()
                 //    .GetResult();
 
-                //Program.RmTest()
-                //    .GetAwaiter()
-                //    .GetResult();
+                Program.RmTest()
+                    .GetAwaiter()
+                    .GetResult();
 
                 //Program.RmTemperatureTest()
                 //    .GetAwaiter()
@@ -46,9 +46,9 @@ namespace ConsoleTest
                 //    .GetAwaiter()
                 //    .GetResult();
 
-                Program.RmRfSignalTest()
-                    .GetAwaiter()
-                    .GetResult();
+                //Program.RmRfSignalTest()
+                //    .GetAwaiter()
+                //    .GetResult();
             }
             catch(Exception e)
             {
@@ -139,7 +139,7 @@ namespace ConsoleTest
         {
             var devs = await Broadlink.Discover();
 
-            var rm = (Rm)devs[0];
+            var rm = (Rm)devs[1];
 
             if (!await rm.Auth())
                 throw new Exception("Auth Failure");
@@ -147,7 +147,6 @@ namespace ConsoleTest
             await rm.EnterLearning();
 
             var data1 = await rm.CheckData();
-
             var data2 = await rm.CheckData();
 
             await rm.SendData(data2);
